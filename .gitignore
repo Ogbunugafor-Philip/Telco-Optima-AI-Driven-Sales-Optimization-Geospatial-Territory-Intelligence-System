@@ -8,3 +8,12 @@ data/*.csv
 data/*.xlsx
 data/*.parquet
 data/*.json
+# Ignore generated / large data files
+data/*.csv
+data/**/*.csv
+*.pkl
+*.joblib
+reports/
+__pycache__/
+.venv/
+venv/
