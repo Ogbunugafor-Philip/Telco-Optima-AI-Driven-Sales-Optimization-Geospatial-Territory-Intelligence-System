@@ -166,10 +166,13 @@ The generation process is governed by a Socio-Economic Weighted Logic to mirror 
 This phase is critical for simulating Economic Disparities. In the system, urban subscribers are assigned higher spending limits and flagship devices, while rural records reflect lower spend and basic phones. This realistic distribution creates a high-fidelity "Training Ground" for the AI, enabling it to learn the patterns necessary to break through the ₦400M revenue plateau and identify the next ₦1B in growth.
 
 •	Create a file named p2_2_subscriber_engine.py and paste the below;
+
 [p2_2_subscriber_engine.py](https://github.com/Ogbunugafor-Philip/Telco-Optima-AI-Driven-Sales-Optimization-Geospatial-Territory-Intelligence-System/blob/main/p2_2_subscriber_engine.py)
 
 •	Run the script;
+```
 python p2_2_subscriber_engine.py
+```
  <img width="975" height="415" alt="image" src="https://github.com/user-attachments/assets/22f9b22c-7d48-41e4-b544-fa3ffdb7ad4c" />
 
 
@@ -203,6 +206,7 @@ pip install mysql-connector-python
 
 
 •	Create the ETL file named p2_3_db_injection.py and paste the below;
+
 [p2_3_db_injection.py](https://github.com/Ogbunugafor-Philip/Telco-Optima-AI-Driven-Sales-Optimization-Geospatial-Territory-Intelligence-System/blob/main/p2_3_db_injection.py)
 
 
@@ -227,6 +231,7 @@ This process is known as Feature Engineering. Instead of using random labels, we
 This step is the final "bridge" in your data pipeline. Once we have these labels, your dataset changes from a simple list of names and numbers into a Supervised Learning Dataset. This is the foundation required to build the predictive engine that will identify the specific customers needed to scale your revenue from ₦400M to ₦1B.
 
 •	Create a new file called p2_4_target_engineering.py and paste the below script
+
 [p2_4_target_engineering.py](https://github.com/Ogbunugafor-Philip/Telco-Optima-AI-Driven-Sales-Optimization-Geospatial-Territory-Intelligence-System/blob/main/p2_4_target_engineering.py)
 
 #### Why This Implementation Matters
