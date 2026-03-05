@@ -4,3 +4,7 @@ __pycache__/
 *.pyc
 *.log
 data/population_ground_truth.csv
+data/*.csv
+data/*.xlsx
+data/*.parquet
+data/*.json
