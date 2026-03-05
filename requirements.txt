@@ -1,0 +1,10 @@
+streamlit
+pandas
+numpy
+scikit-learn
+faker
+plotly
+geopandas
+matplotlib
+seaborn
+mysql-connector-python
