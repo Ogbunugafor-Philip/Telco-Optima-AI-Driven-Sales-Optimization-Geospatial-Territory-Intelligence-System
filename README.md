@@ -152,284 +152,95 @@ python generate_data.py
 <img width="975" height="221" alt="image" src="https://github.com/user-attachments/assets/6b7e483d-c8ad-482a-92ee-e1d7d7f1ee1e" />
 
 
+#### What this script just did:
 
-What this script just did:
 •	Bounding Box Encoding: It restricted every resident to the specific latitude/longitude limits of Bauchi, Alkaleri, and Kirfi.
+
 •	Density Simulation: It created a high-density urban cluster for Bauchi Metro (1.34M dots) and sparse rural clusters for Kirfi (322k dots).
+
 •	GIS Foundation: It created the population_ground_truth.csv file. This is your "Denominator" that you will use later to find the Delta (White Spaces).
 
-Step 2.2: Subscriber Data Generation (Telco Logs)
+#### Step 2.2: Subscriber Data Generation (Telco Logs)
 Phase 2.2 focuses on building the "Business Layer"; the existing customer base. This phase involves generating 525,000 synthetic subscriber records that simulate internal billing and usage logs. This dataset provides the behavioral "signals" required for the Predictive Lead Scoring engine, allowing the system to distinguish between basic users and high-propensity targets.
 The generation process is governed by a Socio-Economic Weighted Logic to mirror the North-East regional market. We distribute the records strategically: 50% in Bauchi Metro, 35% in Alkaleri, and 15% in Kirfi. By integrating the Faker library with custom probability distributions, we encode specific attributes into each profile, such as ARPU (Average Revenue Per User), Data Usage, and Device Type.
 This phase is critical for simulating Economic Disparities. In the system, urban subscribers are assigned higher spending limits and flagship devices, while rural records reflect lower spend and basic phones. This realistic distribution creates a high-fidelity "Training Ground" for the AI, enabling it to learn the patterns necessary to break through the ₦400M revenue plateau and identify the next ₦1B in growth.
+
 •	Create a file named p2_2_subscriber_engine.py and paste the below;
-import pandas as pd
-import numpy as np
-import os
-
-def generate_subscriber_logs():
-    print("--- Phase 2.2: Initializing Subscriber Intelligence Engine (Expanded Devices) ---")
-    
-    output_dir = 'data'
-    if not os.path.exists(output_dir):
-        os.makedirs(output_dir)
-        
-    output_file = os.path.join(output_dir, 'NE_Sub_Billing_P2_2.csv')
-    
-    TOTAL_SUBS = 525000
-    DISTRIBUTION = {
-        "Bauchi Metro": 0.50, # Urban
-        "Alkaleri": 0.35,     # Semi-Urban
-        "Kirfi": 0.15         # Rural
-    }
-    
-    subscriber_list = []
-
-    for lga, weight in DISTRIBUTION.items():
-        count = int(TOTAL_SUBS * weight)
-        print(f"-> Generating {count:,} records for {lga}...")
-
-        # 1. ARPU Modeling (Revenue from calls/data)
-        mean_spend = 6000 if lga == "Bauchi Metro" else 2000
-        arpu_vals = np.random.lognormal(mean=np.log(mean_spend), sigma=0.6, size=count).round(2)
-
-        # 2. Device Strategy (Expanded with Tecno, Itel, and Feature Phones)
-        if lga == "Bauchi Metro":
-            devices = ['iPhone 15', 'Samsung S23', 'Tecno Camon', 'Infinix Note', 'Itel S23', 'Feature Phone']
-            dev_probs = [0.25, 0.25, 0.15, 0.15, 0.10, 0.10]
-            data_scale = 12 
-        else:
-            devices = ['Feature Phone', 'Itel A58', 'Tecno Pop', 'Infinix Hot', 'Samsung S23', 'Nokia 105']
-            # Higher probability of Feature Phones in Rural/Semi-Urban
-            dev_probs = [0.45, 0.20, 0.15, 0.10, 0.02, 0.08]
-            data_scale = 4
-
-        # 3. Optimized ID Generation
-        ids = np.random.randint(7000000000, 9999999999, size=count, dtype=np.int64)
-        sub_ids = "234" + pd.Series(ids).astype(str)
-
-        # 4. Initial Data Generation
-        data_usage = np.random.exponential(scale=data_scale, size=count).round(2)
-        device_choices = np.random.choice(devices, size=count, p=dev_probs)
-
-        # 5. Feature Phone Logic: Zero Data Usage
-        # If device is a Feature Phone or Nokia 105, data usage is 0
-        df_lga = pd.DataFrame({
-            'SubscriberID': sub_ids,
-            'LGA_Location': lga,
-            'ARPU': arpu_vals,
-            'Data_Usage_GB': data_usage,
-            'Device_Type': device_choices,
-            'Tenure_Months': np.random.randint(1, 72, size=count)
-        })
-
-        # Apply the 'No Data' rule for feature phones
-        no_data_devices = ['Feature Phone', 'Nokia 105']
-        df_lga.loc[df_lga['Device_Type'].isin(no_data_devices), 'Data_Usage_GB'] = 0.00
-
-        subscriber_list.append(df_lga)
-
-    # 6. Final Consolidation
-    print("Consolidating all segments...")
-    master_subs = pd.concat(subscriber_list, ignore_index=True)
-    master_subs.to_csv(output_file, index=False)
-    
-    print(f"\nSUCCESS: Created {len(master_subs):,} total records.")
-    print("--- Device & Data Audit ---")
-    print(master_subs.groupby('Device_Type')['Data_Usage_GB'].mean().sort_values())
-    print(f"\nFile Saved: {output_file}")
-
-if __name__ == "__main__":
-    generate_subscriber_logs()
-
+[p2_2_subscriber_engine.py](https://github.com/Ogbunugafor-Philip/Telco-Optima-AI-Driven-Sales-Optimization-Geospatial-Territory-Intelligence-System/blob/main/p2_2_subscriber_engine.py)
 
 •	Run the script;
 python p2_2_subscriber_engine.py
- 
+ <img width="975" height="415" alt="image" src="https://github.com/user-attachments/assets/22f9b22c-7d48-41e4-b544-fa3ffdb7ad4c" />
 
 
-What This Script Does (The Logic Breakdown)
+
+#### What This Script Does (The Logic Breakdown)
 When you run this command, the "Subscriber Engine" performs four high-level operations to simulate a realistic telecommunications environment:
+
 1.	Socio-Economic Segmentation: The script divides the 525,000 records into three groups based on your strategic LGAs. It assigns 50% to Bauchi Metro, 35% to Alkaleri, and 15% to Kirfi, mimicking the actual population density and market presence in these areas.
+
 2.	Advanced ARPU Modeling (The "Rural Millionaire" Logic): Instead of using simple averages, it uses a Log-Normal Distribution. This ensures that while most rural users spend less, the script naturally generates "outliers" high-value customers in Kirfi or Alkaleri who spend as much as, or more than, urban users.
+
 3.	Behavioral Enrichment: It assigns each subscriber a specific Device Type, Data Usage (GB), and Tenure.
+
 o	In the City: Higher probability of 5G-enabled premium devices and heavy streaming usage.
+
 o	In Rural Zones: Higher probability of feature phones and voice-centric usage, but with a 5% "Premium" flag to account for high-net-worth individuals in developing zones.
+
 4.	Automated Data Logging: Finally, it compiles these half-a-million records into a single DataFrame and exports it directly into your data/ folder as NE_Sub_Billing_P2_2.csv. This file becomes the "Source of Truth" for your ML model to learn from in the next phase.
 
-Step 2.3: Database Architecture & ETL Injection (NEW):
+#### Step 2.3: Database Architecture & ETL Injection (NEW):
 Phase 2.3 transitions the project from local flat files to a professional Data Warehouse environment. In a high-scale Telecommunications setting, managing 525,000 subscriber records requires a structured Relational Database Management System (RDBMS). This phase focuses on designing a robust MySQL Schema named telco_optima_db and implementing a custom ETL (Extract, Transform, Load) pipeline to simulate how industrial data centers ingest and process massive daily traffic.
 The architecture begins with the creation of the database schema, specialized for high-speed analytical queries. Unlike standard transactional databases, this schema is optimized for Prescriptive Analytics by defining tables with strict data types and strategic indexing. This ensures that the Machine Learning and Geospatial modules can query subscriber data with zero latency, providing the structural integrity needed to drive regional revenue from ₦400M to ₦1B.
 The ETL Injection serves as the system's "circulatory system," using a Python-based engine to automate the movement of data. The process involves Extracting raw subscriber and population data from Phase 2.1 and 2.2, Transforming it for SQL compatibility, and loading it into the MySQL environment. To simulate a real-world data warehouse, records are injected in batches of 10,000, which prevents memory overload and mirrors the process of updating central repositories from regional sales logs.
 By the end of this phase, Telco-Optima moves from a script-based tool to a permanent, database-backed platform. This transition is critical for scalability, ensuring that as the population and subscriber counts grow, the system remains a reliable single source of truth for identifying "White Spaces" and high-propensity leads.
+
 •	Before running the code, ensure you have MySQL Server installed and running on your machine. Run;
+```
 pip install mysql-connector-python
- 
+```
+<img width="975" height="179" alt="image" src="https://github.com/user-attachments/assets/7510101a-4d69-4eb3-8f9a-cfb48488a019" />
+
 
 •	Create the ETL file named p2_3_db_injection.py and paste the below;
-import pandas as pd
-import mysql.connector
-from mysql.connector import Error
-import time
-import os
+[p2_3_db_injection.py](https://github.com/Ogbunugafor-Philip/Telco-Optima-AI-Driven-Sales-Optimization-Geospatial-Territory-Intelligence-System/blob/main/p2_3_db_injection.py)
 
-def connect_to_mysql():
-    """Establishes connection to MySQL Server"""
-    try:
-        conn = mysql.connector.connect(
-            host='localhost',
-            user='root',
-            password='Osita12345' # Ensure this matches your MySQL password
-        )
-        return conn
-    except Error as e:
-        print(f"Error connecting to MySQL: {e}")
-        return None
 
-def run_etl_pipeline():
-    conn = connect_to_mysql()
-    if not conn: return
-    
-    cursor = conn.cursor()
-    
-    # 1. DESIGN: Create Schema
-    cursor.execute("CREATE DATABASE IF NOT EXISTS telco_optima_db")
-    cursor.execute("USE telco_optima_db")
-    
-    # 2. DESIGN: Refresh Subscriber Table
-    # This 'Drops' the old table so we don't have duplicate or outdated data
-    cursor.execute("DROP TABLE IF EXISTS subscribers")
-    cursor.execute("""
-        CREATE TABLE subscribers (
-            id INT AUTO_INCREMENT PRIMARY KEY,
-            SubscriberID VARCHAR(20),
-            LGA_Location VARCHAR(50),
-            ARPU FLOAT,
-            Data_Usage_GB FLOAT,
-            Device_Type VARCHAR(50),
-            Tenure_Months INT
-        )
-    """)
-    print("Database Schema 'telco_optima_db' refreshed and initialized.")
-
-    # 3. EXTRACT: Load the NEW expanded CSV
-    file_path = 'data/NE_Sub_Billing_P2_2.csv'
-    try:
-        # Load the full 525k records
-        df = pd.read_csv(file_path)
-        print(f"Extracted {len(df):,} records from {file_path}.")
-    except FileNotFoundError:
-        print(f"Error: {file_path} not found. Please run Phase 2.2 first.")
-        return
-
-    # 4. LOAD: Batch Injection
-    # 10,000 records per batch is the 'sweet spot' for speed and stability
-    batch_size = 10000
-    sql = "INSERT INTO subscribers (SubscriberID, LGA_Location, ARPU, Data_Usage_GB, Device_Type, Tenure_Months) VALUES (%s, %s, %s, %s, %s, %s)"
-    
-    print(f"Starting injection into MySQL...")
-    start_time = time.time()
-    
-    try:
-        for i in range(0, len(df), batch_size):
-            batch = df.iloc[i:i+batch_size]
-            # Convert dataframe chunk to list of tuples for SQL injection
-            values = [tuple(x) for x in batch.values]
-            cursor.executemany(sql, values)
-            conn.commit()
-            if (i + batch_size) % 50000 == 0:
-                print(f"Progress: {i + batch_size:,} / {len(df):,} records loaded...")
-
-        end_time = time.time()
-        print(f"\nSUCCESS: ETL Injection Complete!")
-        print(f"Total time: {round(end_time - start_time, 2)} seconds.")
-        
-    except Error as e:
-        print(f"Error during injection: {e}")
-    
-    finally:
-        cursor.close()
-        conn.close()
-
-if __name__ == "__main__":
-    run_etl_pipeline()
 •	Run the command;
+```
 python p2_3_db_injection.py
+```
+<img width="975" height="440" alt="image" src="https://github.com/user-attachments/assets/67c65537-6d28-465f-87b2-77c69c102f9d" />
+
  
-What is happening in this implementation?
+#### What is happening in this implementation?
+
 •	Schema Creation: It automatically creates the telco_optima_db. You don't need to do it manually in phpMyAdmin.
+
 •	The "T" in ETL: The script ensures that data types are correct (e.g., ARPU is a FLOAT, Tenure is an INT) before they hit the database.
+
 •	The "L" (Batch Loading): By using execute many with 10,000 records at a time, we ensure the injection is fast and doesn't time out the server. This is exactly how high-volume telco data is moved.
 
-Step 2.4: Target Variable Creation
+#### Step 2.4: Target Variable Creation
 Phase 2.4 is the transition from raw data storage to AI Readiness. In Machine Learning, a model cannot learn unless it has a "target" or "label" to predict. Think of this step as creating the Answer Key for a test. We are going to programmatically evaluate our 525,000 subscribers and tag them with a Propensity_Score (0 or 1). A "1" represents a subscriber who has a high likelihood of upgrading or "converting" to a premium plan, while a "0" represents a standard user.
 This process is known as Feature Engineering. Instead of using random labels, we apply business-driven logic based on the North-East regional market. For example, if a subscriber in Bauchi Metro has high data consumption but is on a low-value plan, they are a prime candidate for an upgrade. By creating this variable, we are teaching the AI exactly what a "High-Value Lead" looks like. Later, the model will analyze thousands of these examples to find hidden patterns that a human analyst would miss.
 This step is the final "bridge" in your data pipeline. Once we have these labels, your dataset changes from a simple list of names and numbers into a Supervised Learning Dataset. This is the foundation required to build the predictive engine that will identify the specific customers needed to scale your revenue from ₦400M to ₦1B.
+
 •	Create a new file called p2_4_target_engineering.py and paste the below script
-import pandas as pd
-import mysql.connector
-from mysql.connector import Error
-import numpy as np
+[p2_4_target_engineering.py](https://github.com/Ogbunugafor-Philip/Telco-Optima-AI-Driven-Sales-Optimization-Geospatial-Territory-Intelligence-System/blob/main/p2_4_target_engineering.py)
 
-def run_target_engineering():
-    print("--- Phase 2.4: Refreshing AI Target Variables (Propensity Scoring) ---")
-    
-    try:
-        conn = mysql.connector.connect(
-            host='localhost',
-            user='root',
-            password='Osita12345',
-            database='telco_optima_db'
-        )
-        cursor = conn.cursor()
+#### Why This Implementation Matters
 
-        # 1. Add Propensity Column if it doesn't exist
-        cursor.execute("SHOW COLUMNS FROM subscribers LIKE 'Propensity_Score'")
-        if not cursor.fetchone():
-            cursor.execute("ALTER TABLE subscribers ADD COLUMN Propensity_Score INT DEFAULT 0")
-            conn.commit()
-
-        # 2. Extract for Labeling
-        df = pd.read_sql("SELECT * FROM subscribers", conn)
-
-        # 3. Prescriptive Logic (The 'Answer Key' for the AI)
-        # 1 = High Propensity (Target for Sales), 0 = Standard
-        print("Applying Logic: Identifying High-Value Power Users...")
-        df['Propensity_Score'] = np.where(
-            ((df['ARPU'] > 5000) & (df['Data_Usage_GB'] > 10)) | 
-            ((df['Tenure_Months'] > 24) & (df['ARPU'] > 4000)),
-            1, 0
-        )
-
-        # 4. Batch Update MySQL
-        update_sql = "UPDATE subscribers SET Propensity_Score = %s WHERE id = %s"
-        batch_data = list(zip(df['Propensity_Score'].astype(int), df['id']))
-        
-        batch_size = 10000
-        for i in range(0, len(batch_data), batch_size):
-            chunk = batch_data[i:i+batch_size]
-            cursor.executemany(update_sql, chunk)
-            conn.commit()
-            if (i + batch_size) % 50000 == 0:
-                print(f"Labeled {i + batch_size:,} records...")
-
-        print("\nSUCCESS: AI Target Variables generated for the new device mix.")
-        
-    except Error as e:
-        print(f"Error: {e}")
-    finally:
-        if conn.is_connected():
-            cursor.close()
-            conn.close()
-
-if __name__ == "__main__":
-    run_target_engineering()
-Why This Implementation Matters
 Feature Engineering: We are not just storing data; we are creating new knowledge. The np.where logic acts as an "expert system" that pre-identifies high-value leads for the AI to study.
+
 Binary Classification: Most machine learning models for propensity (likelihood to act) require a 1 (Success) or 0 (No Action) target.
+
 Database Synchronization: By using an UPDATE command, we ensure your MySQL database stays in sync with your Python logic, making it a "Live" data warehouse for the next phases.
 •	Run the command;
+```
 python p2_4_target_engineering.py
+```
+<img width="975" height="403" alt="image" src="https://github.com/user-attachments/assets/a014715e-7c72-4cc1-8026-fc11fd0fe2ba" />
  
 
 Phase 3: Data Preprocessing & Exploratory Analysis (EDA)
